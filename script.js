@@ -18,6 +18,7 @@ const dGW = 400;
 console.log(cW + "x" + cH);
 //gD is greater dimension 
 var gD;
+//this isn't used, but i'm not deleting it because it might break something 
 if (cH > cW) {
     gD = cH;
     m = gD / dGH;
@@ -75,40 +76,69 @@ class bike {
         var temp = [this.x, this.y];
         this.linelist.push(temp);
     }
-    ccheck(x,y,w) {
-        if(this.x-w <= x && x <= this.x + w && this.y-w <= y && y <= this.y + w){
-            console.log('ow');
-            clearInterval(game);
-            clear();
-            ctx.font = "30px Arial";
-            ctx.fillText("You survived for "+wave+" waves", 10, 50);
-            ctx.font = "20px Arial";
-            ctx.fillText("To play again, reload the page", 10, 90)
+    ccheck(x,y,w,wa) {
+        if(wa==null || wa<=0){
+            var xd=(this.x-x)*(this.x-x);
+            var yd=(this.y-y)*(this.y-y);
+            var total=xd+yd;
+            var d=Math.sqrt(total);
+            if(d<=w){
+                console.log('ow');
+                clearInterval(game);
+                clear();
+                ctx.font = "30px Arial";
+                ctx.fillText("You survived for "+(wave-startwave)+" waves", 10, 50);
+                ctx.font = "18px Arial";
+                ctx.fillText("To play again, double-click the play button", 10, 90)
+            }
         }
     }
 }
 class obstacle{
-    constructor(color,x,y,size,xs,ys){
+    constructor(color,x,y,size,xs,ys,wait,drawWait){
         this.c=color;
         this.x=x;
         this.y=y;
         this.s=size;
         this.xs=xs;
         this.ys=ys;
+        if(wait!=null){
+            this.w=wait;
+        }
+        if(drawWait!=null){
+            this.dw=drawWait;
+        }
     }
     draw(){
-        ctx.fillStyle = this.c;
-        ctx.beginPath();
-        ctx.arc(this.x,this.y,this.s,0,Math.PI*2);
-        ctx.fill();
+
+        if(this.dw==null||this.dw<=0){
+            ctx.fillStyle = "#9999FF";
+            ctx.beginPath();
+            ctx.arc(this.x,this.y,this.s,0,Math.PI*2);
+            ctx.fill();
+            if(this.w==null || this.w<=0){
+                ctx.fillStyle = this.c;
+                ctx.beginPath();
+                ctx.arc(this.x,this.y,this.s,0,Math.PI*2);
+                ctx.fill();
+            }else{
+            }
+        }   
     }
     move(x,y){
         this.x=this.x+x;
         this.y=this.y+y;
     }
     smove(){
+        if(this.w==null || this.w<=0){
         this.x=this.x+this.xs;
         this.y=this.y+this.ys;
+        }
+    }
+    adv(){
+        if(this.w!=null){
+            this.w=this.w-1;
+        }
     }
 }
 function turn(conlist, bike, evt) {
@@ -134,7 +164,7 @@ document.onkeydown = function (evt) {
     }
     turn(conlist1, bike1, evt);
     move(conlist1,bike1,evt);
-    //turn(conlist2,bike2,evt);
+    // turn(conlist2,bike2,evt);
 }
 document.onkeyup = function (evt) {
     evt = evt || window.event;
@@ -181,6 +211,10 @@ const wavelist = [	[new obstacle("#0000FF",0,0,5,0,1),new obstacle("#0000FF",40,
 ,[new obstacle('#0000FF',0,0,10,3,3),new obstacle('#0000FF',400,0,10,-3,3)]
 ,[new obstacle('#0000FF',0,0,10,3,3),new obstacle('#0000FF',400,0,10,-3,3),new obstacle('#0000FF',400,400,10,-3,-3)]
 ,[new obstacle('#0000FF',0,200,10,3,0),new obstacle('#0000FF',200,0,10,0,3),new obstacle('#0000FF',200,400,10,0,-3),new obstacle('#0000FF',400,200,10,-3,0)]
+,[new obstacle('#0000FF',0,0,10,0,3),new obstacle('#0000FF',100,0,10,0,3,33),new obstacle('#0000FF',200,0,10,0,3,66),new obstacle('#0000FF',300,0,10,0,3,99),new obstacle('#0000FF',400,0,10,0,3 ,33*4),new obstacle('#0000FF',350,0,10,0,3),new obstacle('#0000FF',250,0,10,0,3,33),new obstacle('#0000FF',150,0,10,0,3,66),new obstacle('#0000FF',50,0,10,0,3,99)]
+
+
+
 ];
 console.log(bike1);
 console.log(obslist);
@@ -189,10 +223,10 @@ function gloop() {
     t++;
     bikeloop(bike1);
     for (i in obslist){
-        //i.draw();
         obslist[i].draw();
+        obslist[i].adv()
         obslist[i].smove();
-        bike1.ccheck(obslist[i].x,obslist[i].y,obslist[i].s);
+        bike1.ccheck(obslist[i].x,obslist[i].y,obslist[i].s,obslist[i].w);
         if (obslist[i].x > 400) {
             obslist.splice(i,1);
         } else if (obslist[i].x < 0) {
@@ -202,6 +236,7 @@ function gloop() {
         } else if (obslist[i].y < 0) {
             obslist.splice(i,1);
         }
+
     }
     if (obslist.length==0){
         wave++;
@@ -214,7 +249,21 @@ function gloop() {
         ctx.fillText("You won!", 10, 50);       
     }
 }
+var gamestarted = false;
+var game;
 function start(){
+    if(gamestarted==true){
+        location.reload();
+
+    }else if(game==null){
+    cb = document.getElementById("hitbox");
     wave = prompt("Start at wave:", 0)-1;
+    startwave=wave;
+    gamestarted = true;
     game = setInterval(gloop, 10);
+    }
+        
+
+    
+    console.log(game);
 }
